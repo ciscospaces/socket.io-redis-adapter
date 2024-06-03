@@ -73,6 +73,11 @@ export interface RedisAdapterOptions {
    * This option defaults to using `notepack.io`, a MessagePack implementation.
    */
   parser: Parser;
+  /**
+   * A function that will be called to determine the channel to deliver a message to based on the current channel.
+   * This can be used to implement instance-based message delivery.
+   */
+  instanceBasedMessageDelivery: (deliveryChannel: string, currentChannel: string) => string;
 }
 
 /**
@@ -108,7 +113,7 @@ export class RedisAdapter extends Adapter {
   private ackRequests: Map<string, AckRequest> = new Map();
   private redisListeners: Map<string, Function> = new Map();
   private readonly friendlyErrorHandler: () => void;
-
+  private readonly instanceBasedMessageDelivery: (deliveryChannel: string, currentChannel: string) => string;
   /**
    * Adapter constructor.
    *
@@ -190,6 +195,10 @@ export class RedisAdapter extends Adapter {
         console.warn("missing 'error' handler on this Redis client");
       }
     };
+
+    if (opts.instanceBasedMessageDelivery && typeof opts.instanceBasedMessageDelivery === 'function') {
+      this.instanceBasedMessageDelivery = opts.instanceBasedMessageDelivery;
+    }
     this.pubClient.on("error", this.friendlyErrorHandler);
     this.subClient.on("error", this.friendlyErrorHandler);
   }
@@ -201,6 +210,14 @@ export class RedisAdapter extends Adapter {
    */
   private onmessage(pattern, channel, msg) {
     channel = channel.toString();
+
+    let instanceBasedDeliveryChannel;
+    if (this.instanceBasedMessageDelivery) {
+      instanceBasedDeliveryChannel = this.instanceBasedMessageDelivery(channel, this.channel);
+      if (instanceBasedDeliveryChannel) {
+        channel = instanceBasedDeliveryChannel;
+      }
+    }
 
     const channelMatches = channel.startsWith(this.channel);
     if (!channelMatches) {
@@ -219,6 +236,10 @@ export class RedisAdapter extends Adapter {
 
     if (packet && packet.nsp === undefined) {
       packet.nsp = "/";
+    }
+
+    if (packet && instanceBasedDeliveryChannel) {
+      packet.nsp = this.nsp.name;
     }
 
     if (!packet || packet.nsp !== this.nsp.name) {

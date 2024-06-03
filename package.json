@@ -1,11 +1,11 @@
 {
-  "name": "@socket.io/redis-adapter",
-  "version": "8.3.0",
-  "description": "The Socket.IO Redis adapter, allowing to broadcast events between several Socket.IO servers",
+  "name": "@ciscospaces/redis-adapter",
+  "version": "1.0.1",
+  "description": "The Socket.IO Redis adapter, allowing to unicast events between several Socket.IO servers",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git@github.com:socketio/socket.io-redis-adapter.git"
+    "url": "git+ssh://git@github.com/ciscospaces/socket.io-redis-adapter.git"
   },
   "files": [
     "dist/"
@@ -46,5 +46,18 @@
   },
   "engines": {
     "node": ">=10.0.0"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/ciscospaces/socket.io-redis-adapter/issues"
+  },
+  "homepage": "https://github.com/ciscospaces/socket.io-redis-adapter#readme",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "keywords": [
+    "socketio",
+    "redis"
+  ],
+  "author": "asgiri"
 }
